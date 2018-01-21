@@ -1,15 +1,15 @@
 const fs = require("fs");
-const path = require("path");
+const PATH = require("path");
 const mime = require("mime");
 
 
 function getFiles(baseDir = "./") {
-    const files = new WeakMap();
+    const files = new Map();
     
     fs
         .readdirSync(baseDir)
         .forEach((fileName) => {
-            const path = fs.join(baseDir, fileName);
+            const path = PATH.resolve(baseDir, fileName);
             const descriptor = fs.openSync(path, "r");
             const stat = fs.fstatSync(descriptor);
             const contentType = mime.getType(path);

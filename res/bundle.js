@@ -1,5 +1,3 @@
+"use strict"
 
-
-(function() {
-    console.log("   HI FROM BUNDLE 1");
-})()
+document.body.innerHTML += '<p>Bundle loaded</p>'
