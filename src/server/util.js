@@ -3,6 +3,7 @@ const fileUtil = require("../util/file-util");
 const { HTTP2_HEADER_PATH, HTTP2_HEADER_STATUS } = require("http2").constants;
 
 
+// TODO: replace getFiles impl with file read stream piped to response stream
 const resources = fileUtil.getFiles("./res");
 const INDEX_FILES = ["/bundle.js"];
 const DEFAULT_RESOURCE = "/index.html";
