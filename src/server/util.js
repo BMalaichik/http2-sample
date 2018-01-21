@@ -27,6 +27,8 @@ function handleRequest(req, res, next) {
     if (reqPath === "/index.html") {
         INDEX_FILES.forEach((file) => push(res.stream, file));
     }
+
+    res.stream.respondWithFD(file.descriptor, file.headers);
 }
 
 
