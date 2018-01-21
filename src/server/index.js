@@ -10,9 +10,8 @@ const PUBLIC_PATH = PATH.join(__dirname, "../res");
 const server = http2.createSecureServer({
     key: fs.readFileSync('localhost-privkey.pem'),
     cert: fs.readFileSync('localhost-cert.pem')
-});
+}, handleRequest);
 
-server.on("stream", handleRequest);
 
 server.listen(PORT, (err) => {
     if (err) throw err;

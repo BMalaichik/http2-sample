@@ -1,44 +1,47 @@
 const path = require("path");
 const fileUtil = require("../util/file-util");
-const { HTTP2_HEADER_PATH } = require("http2");
+const { HTTP2_HEADER_PATH, HTTP2_HEADER_STATUS } = require("http2").constants;
 
 
 const resources = fileUtil.getFiles("./res");
 const INDEX_FILES = ["/bundle.js"];
 const DEFAULT_RESOURCE = "/index.html";
 
-function push(stream, path) {
+function push(req, path) {
     const file = resources.get(path);
-    console.log("path: ", path);
-    console.log(file);
+
     if (!file) {
         return;
     }
 
-    stream.push({ [HTTP2_HEADER_PATH]: path }, (pushStream) => {
+    req.stream.pushStream({ [HTTP2_HEADER_PATH]: path }, (pushStream) => {
         pushStream.respondWithFD(file.descriptor, file.headers);
     });
 }
 
-function handleRequest(req) {
-    const reqPath = req.path === "/" || !req.path ? DEFAULT_RESOURCE : req.path;
+function handleRequest(req, res, next) {
+    let reqPath = req.headers[HTTP2_HEADER_PATH];
+
+    if (!reqPath || reqPath === "/") {
+        reqPath = DEFAULT_RESOURCE;
+    }
+
     const file = resources.get(reqPath);
 
     if (!file) {
-        req.respond({
-            'content-type': 'text/html',
-            ':status': 404
-          });
-        req.end('<h1>Not found</h1>');
+        req.stream.respond({
+            [HTTP2_HEADER_STATUS]: 404
+        });
+        req.stream.end(`${reqPath} not found :(`);
 
         return;
     }
 
     if (reqPath === "/index.html") {
         INDEX_FILES.forEach((file) => push(req, file));
-    } else {
-        req.respondWithFD(file.descriptor, file.headers);
     }
+
+    req.stream.respondWithFD(file.descriptor, file.headers);
 }
 
 
