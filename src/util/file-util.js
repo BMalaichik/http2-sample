@@ -12,7 +12,7 @@ function getFiles(baseDir = "./") {
             const path = fs.join(baseDir, fileName);
             const descriptor = fs.openSync(path, "r");
             const stat = fs.fstatSync(descriptor);
-            const contentType = mime.lookup(path);
+            const contentType = mime.getType(path);
 
             files.set(`/${fileName}`, {
                 descriptor,
