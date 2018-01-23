@@ -1,7 +1,7 @@
 const fs = require("fs");
 const PATH  = require("path");
 const http2 = require("http2");
-const { handleRequest, push } = require("./util");
+const { handleRequest } = require("./util");
 
 
 const PORT = process.env.PORT || 3000;

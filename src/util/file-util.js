@@ -2,6 +2,20 @@ const fs = require("fs");
 const PATH = require("path");
 const mime = require("mime");
 
+const SOURCE_DIR = "../../res";
+
+/**
+ *  Returns file read stream
+ */
+function lookupFile(path) {
+    const resolvedPath = PATH.join(__dirname, SOURCE_DIR, path);
+    console.log("resolvedPath: ", resolvedPath);
+    if (!fs.existsSync(resolvedPath)) {
+        return null;
+    }
+
+    return fs.createReadStream(resolvedPath);
+}
 
 function getFiles(baseDir = "./") {
     const files = new Map();
@@ -28,5 +42,6 @@ function getFiles(baseDir = "./") {
 }
 
 module.exports = {
-    getFiles
+    getFiles,
+    lookupFile
 }

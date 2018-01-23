@@ -1,23 +1,37 @@
+const fs = require("fs");
 const path = require("path");
 const fileUtil = require("../util/file-util");
 const { HTTP2_HEADER_PATH, HTTP2_HEADER_STATUS } = require("http2").constants;
 
 
 // TODO: replace getFiles impl with file read stream piped to response stream
-const resources = fileUtil.getFiles("./res");
+// const resources = fileUtil.getFiles("./res");
 const INDEX_FILES = ["/bundle.js"];
 const DEFAULT_RESOURCE = "/index.html";
 
-function push(req, path) {
-    const file = resources.get(path);
+function push(req, res, path) {
+    const fileStream = fileUtil.lookupFile(path);
 
-    if (!file) {
+    respond(req, res, path, fileStream);
+}
+
+function respond(req, res, path, fileStream) {
+    if (!fileStream) {
+        console.error("No stream provided to response");
+
         return;
     }
 
-    req.stream.pushStream({ [HTTP2_HEADER_PATH]: path }, (pushStream) => {
-        pushStream.respondWithFD(file.descriptor, file.headers);
-    });
+
+    res.stream.pushStream(
+        {
+            [HTTP2_HEADER_PATH]: path
+        },
+        (pushStream) => {
+            fileStream.pipe(pushStream);
+            fileStream.on("finish", pushStream.end)
+        });
+
 }
 
 function handleRequest(req, res, next) {
@@ -27,9 +41,9 @@ function handleRequest(req, res, next) {
         reqPath = DEFAULT_RESOURCE;
     }
 
-    const file = resources.get(reqPath);
+    const fileStream = fileUtil.lookupFile(reqPath);
 
-    if (!file) {
+    if (!fileStream) {
         req.stream.respond({
             [HTTP2_HEADER_STATUS]: 404
         });
@@ -39,14 +53,15 @@ function handleRequest(req, res, next) {
     }
 
     if (reqPath === "/index.html") {
-        INDEX_FILES.forEach((file) => push(req, file));
+        INDEX_FILES.forEach((file) => push(req, res, file));
     }
 
-    req.stream.respondWithFD(file.descriptor, file.headers);
+    fileStream.pipe(req.stream);
+    fileStream.on("finish", req.stream.end);
+    // respond(req, res, reqPath, fileStream);
 }
 
 
 module.exports = {
-    push,
     handleRequest
 }
